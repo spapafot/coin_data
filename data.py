@@ -8,7 +8,6 @@ import json
 import smtplib
 import os
 
-
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SERVICE_ACCOUNT_FILE = 'keys.json'
 API_KEY = os.environ["API_KEY"]

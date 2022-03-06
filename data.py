@@ -13,6 +13,7 @@ SERVICE_ACCOUNT_FILE = 'keys.json'
 API_KEY = os.environ["API_KEY"]
 EMAIL = os.environ["EMAIL"]
 EMAIL_PASS = os.environ["EMAIL"]
+SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
 
 
 def get_latest_token_from_coinmarketcap():
@@ -111,7 +112,6 @@ def send(data):
 
 creds = None
 creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-SPREADSHEET_ID = '1TX90DYIHB25HLfpWg_LFaH4gQMGjcmGjQMwLvWG3jGY'
 range_name = 'A1:F99'
 
 

@@ -14,6 +14,7 @@ API_KEY = os.environ["API_KEY"]
 EMAIL = os.environ["EMAIL"]
 EMAIL_PASS = os.environ["EMAIL"]
 SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
+PLATFORM_URL = "https://exchange.pancakeswap.finance/#/swap?outputCurrency="
 
 
 def get_latest_token_from_coinmarketcap():
@@ -34,6 +35,8 @@ def get_latest_token_from_coingecko():
 
 
 def check_binance_new_listings():
+    
+    # Notify for new listings on Binance
     binance_request = Session()
     binance_response = binance_request.get("https://www.binance.com/en/support/announcement/c-48?navId=48").text
     soup = BeautifulSoup(binance_response, "lxml")
@@ -53,6 +56,8 @@ def check_binance_new_listings():
 
 
 def get_token_data_from_coinmarketcap():
+    
+    # get the latest listing from coinmarketcap    
     url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
     parameters = {
         'start': '1',
@@ -84,6 +89,8 @@ def get_token_data_from_coinmarketcap():
 
 
 def get_token_data_from_coingecko(token):
+    
+    # get the latest listing from coingecko    
     url = f"https://api.coingecko.com/api/v3/coins/{token}"
     session = Session()
     response = session.get(url)
@@ -98,12 +105,14 @@ def get_token_data_from_coingecko(token):
 
 
 def send(data):
+    
+    # send data with price shift to designated email with a link to swap directly (i use pancakeswap)    
     token_name = data[0]
     token_contract = data[1]
     token_chain = data[2]
     price = data[3]
     one_hour_change = data[4]
-    pancake_url="https://exchange.pancakeswap.finance/#/swap?outputCurrency="
+    pancake_url = PLATFORM_URL
     connection = smtplib.SMTP("smtp.gmail.com")
     connection.starttls()
     connection.login(EMAIL, EMAIL_PASS)
@@ -116,6 +125,8 @@ range_name = 'A1:F99'
 
 
 def get_from_sheet(ID):
+    
+    #helper function to check tokens that are already saved 
     service = build('sheets', 'v4', credentials=creds)
     sheet = service.spreadsheets()
     result = sheet.values().get(spreadsheetId=ID, range=range_name).execute()
@@ -124,6 +135,8 @@ def get_from_sheet(ID):
 
 
 def add_to_sheet(data, ID):
+    
+    # add token to spreadsheet for future monitoring
     data_table = [data]
 
     service = build('sheets', 'v4', credentials=creds)
@@ -136,9 +149,12 @@ def add_to_sheet(data, ID):
 
 
 def check_coinmarketcap():
+    
+    #If not in spreadsheet already, add it
     latest_token = get_latest_token_from_coinmarketcap()
     all_coins = get_from_sheet(SPREADSHEET_ID)
     coin_table = [x[0] for x in all_coins if x[0] != "TOKEN"]
+    
     if latest_token not in coin_table:
         data = get_token_data_from_coinmarketcap()
         if data[2] == "Binance Smart Chain":
@@ -147,14 +163,21 @@ def check_coinmarketcap():
 
 
 def check_coingecko():
+    
+    #If not in spreadsheet already, add it
     latest_token = get_latest_token_from_coingecko()
-    print(latest_token)
     all_coins = get_from_sheet(SPREADSHEET_ID)
     coin_table = [x[0] for x in all_coins if x[0] != "TOKEN"]
-    print(coin_table)
+
     if latest_token not in coin_table:
         data = get_token_data_from_coingecko(latest_token)
         if data[2] == "binance-smart-chain":
             add_to_sheet(data, SPREADSHEET_ID)
             send(data)
+
+            
+if __name__ == '__main__':
+    pass
+    # Pick any ar all of the above!
+
 
